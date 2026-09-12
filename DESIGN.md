@@ -1,0 +1,86 @@
+# Hypermesh CLI design lock (Phase 1)
+
+This file restates the product lock. Do not invent a second one.
+
+## Names
+
+- Binary: `hypermesh` (alias `hm`).
+- Product: **Hypermesh** / **Hyperme.sh**. Never bare Hyperme.
+- Phase 1 product: **Full Model** only. Catalog id `llama-3.1-8b-q4`.
+- Not in v0: Your Model, BYOM, box rent, load, host enroll, MHS, WireGuard keys, tok/s claims, host IPs.
+
+## Auth
+
+One org API key from api-keys (`purpose: renter`) for both control plane and router.
+
+| Header | Value |
+|---|---|
+| `X-Api-Key` | renter org key |
+| `X-Tenant-ID` | tenant id |
+
+Reject `hm_dev_`, `hm_rtr_`, and `hm_site_` as renter identity.
+
+No OIDC dance in the CLI. No SIWE. No WireGuard.
+
+## Bases
+
+| Env | Default |
+|---|---|
+| `HYPERMESH_API_BASE` | `https://api.test.hyperme.sh` |
+| `HYPERMESH_CHAT_BASE` | `https://chat.test.hyperme.sh` |
+
+Config: `~/.config/hypermesh/config.toml`. Credentials file `~/.config/hypermesh/credentials` mode `0600`. Override directory with `HYPERMESH_CONFIG_DIR`.
+
+## Locked routes
+
+| Command | HTTP |
+|---|---|
+| `catalog` / `catalog show` | `GET /api/v1/hypermesh/catalog` (public). Show is a client-side filter. |
+| `classes` | `GET /api/v1/hypermesh/classes` (public) |
+| `checkout` | `POST /api/v1/hypermesh/leases` |
+| `lease list` | `GET /api/v1/hypermesh/leases` |
+| `lease show` | `GET /api/v1/hypermesh/leases/{id}` |
+| `lease complete` | `POST /api/v1/hypermesh/leases/{id}/complete` |
+| `chat` / `prompt` / `completions create` | `POST {HYPERMESH_CHAT_BASE}/v1/chat/completions` |
+
+Do **not** call `POST /api/v1/hypermesh/renter/chat/completions` (always-409 stub).
+
+## LeaseCreate (Phase 1)
+
+```json
+{
+  "kind": "p2_loaded_model",
+  "renter_user_id": "<uuid>",
+  "catalog_id": "llama-3.1-8b-q4",
+  "success_url": "…",
+  "cancel_url": "…",
+  "reserved_hours": 1,
+  "purpose": "renter"
+}
+```
+
+Lease fields the CLI prints: `id`, `status`, `checkout_url`.
+
+Status motion: `offered` → `paid` → `starting` → `active` → `ended` | `failed` | `refunded`.
+
+`checkout` prints `id` and `checkout_url` immediately, opens `checkout_url` unless `--no-open`, and `--wait` polls `GET /leases/{id}` until `active` or `failed`.
+
+## Router chat
+
+Paid lease ticket plus the same renter key.
+
+- `lease_id` in the JSON body
+- and `X-Hypermesh-Lease-Id` / `X-Lease-Id`
+- OpenAI-shaped `model` + `messages`
+
+Never log prompt bodies.
+
+## Principles
+
+Thin client over the REST lock in [FyberLabs/hypermesh-docs](https://github.com/FyberLabs/hypermesh-docs):
+
+- [customer-interfaces.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/customer-interfaces.md) — one API, CLI is a key, not a second login
+- [full-model.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/full-model.md) — product 2
+- [payments.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/payments.md) — Stripe Checkout, Fyber Labs merchant of record
+- [router.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/router.md) — customers scale on HTTPS; host WireGuard is not a renter path
+- [public-sites.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/public-sites.md) — do not dump internal locks onto customer copy
