@@ -64,16 +64,21 @@ Also: `HYPERMESH_API_KEY`, `HYPERMESH_TENANT_ID`, `HYPERMESH_RENTER_USER_ID`, `H
 ## Phase 1 flow
 
 1. See the public catalog and classes (no key required).
-2. Checkout a Full Model lease (`kind=p2_loaded_model`, `catalog_id=llama-3.1-8b-q4`, `purpose=renter`).
-3. Pay Stripe **test** Checkout. The CLI prints `lease_id` and `checkout_url` immediately and opens the URL unless `--no-open`.
-4. When the lease is `active`, chat on the Fyber router with the same key plus the paid lease ticket.
+2. List renter-safe hosts and copy `device_id` (the plane UUID). `public_label` is display only.
+3. Checkout a Full Model lease (`kind=p2_loaded_model`, `catalog_id=llama-3.1-8b-q4`, `purpose=renter`, `device_id=<UUID>`). The CLI does not pick a host. Missing `--device-id` fails before POST.
+4. Pay Stripe **test** Checkout. The CLI prints `lease_id` and `checkout_url` immediately and opens the URL unless `--no-open`.
+5. When the lease is `active`, chat on the Fyber router with the same key plus the paid lease ticket.
 
 ```bash
 hypermesh catalog
 hypermesh catalog show llama-3.1-8b-q4
 hypermesh classes
 
+hypermesh hosts
+hypermesh hosts --catalog-id llama-3.1-8b-q4
+
 hypermesh checkout \
+  --device-id "$DEVICE_ID" \
   --renter-user-id "$HYPERMESH_RENTER_USER_ID" \
   --success-url "https://hyperme.sh/ok" \
   --cancel-url "https://hyperme.sh/cancel" \
@@ -103,6 +108,7 @@ Lease status: `offered` → `paid` → `starting` → `active` → `ended` | `fa
 - MHS, clustering, public tok/s
 - A second login (OIDC, SIWE) in this binary
 - Invented catalog ids beyond `llama-3.1-8b-q4` as the Phase 1 default
+- Crypto / USDC pay, fake pay, or payment bypass
 
 ## Commands
 
@@ -111,6 +117,7 @@ Lease status: `offered` → `paid` → `starting` → `active` → `ended` | `fa
 | `auth login\|whoami\|logout` | local config |
 | `catalog` / `catalog show` | `GET /api/v1/hypermesh/catalog` |
 | `classes` | `GET /api/v1/hypermesh/classes` |
+| `hosts` | `GET /api/v1/hypermesh/renter/hosts` |
 | `checkout` | `POST /api/v1/hypermesh/leases` |
 | `lease list\|show\|complete` | `GET/POST /api/v1/hypermesh/leases[/{id}[/complete]]` |
 | `chat` / `prompt` / `completions create` | `POST {chat base}/v1/chat/completions` |

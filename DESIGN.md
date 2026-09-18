@@ -37,6 +37,7 @@ Config: `~/.config/hypermesh/config.toml`. Credentials file `~/.config/hypermesh
 |---|---|
 | `catalog` / `catalog show` | `GET /api/v1/hypermesh/catalog` (public). Show is a client-side filter. |
 | `classes` | `GET /api/v1/hypermesh/classes` (public) |
+| `hosts` | `GET /api/v1/hypermesh/renter/hosts` (same auth as `POST /leases`). Optional `catalog_id` query only. |
 | `checkout` | `POST /api/v1/hypermesh/leases` |
 | `lease list` | `GET /api/v1/hypermesh/leases` |
 | `lease show` | `GET /api/v1/hypermesh/leases/{id}` |
@@ -55,11 +56,16 @@ Do **not** call `POST /api/v1/hypermesh/renter/chat/completions` (always-409 stu
   "success_url": "…",
   "cancel_url": "…",
   "reserved_hours": 1,
-  "purpose": "renter"
+  "purpose": "renter",
+  "device_id": "<uuid>"
 }
 ```
 
-Lease fields the CLI prints: `id`, `status`, `checkout_url`.
+`device_id` is the plane UUID from `hosts`, not `public_label`. Required when `purpose` is `renter`. The client rejects a missing or non-UUID `device_id` before POST (the API would 422). The CLI does not auto-pick a host.
+
+`hosts` rows: `device_id`, `public_label` (display only), `class_id`, `certified`, `online`, `sell_state`. No serial, secrets, or host console fields.
+
+Lease fields the CLI prints: `id`, `status`, `checkout_url`. Stripe Checkout only.
 
 Status motion: `offered` → `paid` → `starting` → `active` → `ended` | `failed` | `refunded`.
 

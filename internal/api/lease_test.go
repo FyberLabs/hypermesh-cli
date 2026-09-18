@@ -13,6 +13,7 @@ func TestLeaseCreateJSON(t *testing.T) {
 		"https://example.test/ok",
 		"https://example.test/cancel",
 		1,
+		"22222222-2222-2222-2222-222222222222",
 	)
 	raw, err := body.MarshalJSONExact()
 	if err != nil {
@@ -30,6 +31,7 @@ func TestLeaseCreateJSON(t *testing.T) {
 		"cancel_url":     "https://example.test/cancel",
 		"reserved_hours": float64(1),
 		"purpose":        PurposeRenter,
+		"device_id":      "22222222-2222-2222-2222-222222222222",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("unexpected keys %v", got)
@@ -43,7 +45,7 @@ func TestLeaseCreateJSON(t *testing.T) {
 
 func TestLeaseCreateDefaults(t *testing.T) {
 	t.Parallel()
-	body := NewPhase1LeaseCreate("u", "", "s", "c", 0)
+	body := NewPhase1LeaseCreate("u", "", "s", "c", 0, "22222222-2222-2222-2222-222222222222")
 	if body.CatalogID != DefaultCatalogID {
 		t.Fatalf("catalog default: %q", body.CatalogID)
 	}
@@ -53,18 +55,29 @@ func TestLeaseCreateDefaults(t *testing.T) {
 	if body.Kind != KindP2LoadedModel || body.Purpose != PurposeRenter {
 		t.Fatalf("kind/purpose lock: %+v", body)
 	}
+	if body.DeviceID != "22222222-2222-2222-2222-222222222222" {
+		t.Fatalf("device_id: %q", body.DeviceID)
+	}
 }
 
 func TestLeaseCreateValidate(t *testing.T) {
 	t.Parallel()
-	body := NewPhase1LeaseCreate("", DefaultCatalogID, "s", "c", 1)
+	body := NewPhase1LeaseCreate("", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected renter_user_id error")
 	}
-	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1)
+	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
 	body.Kind = "byom"
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected kind lock")
+	}
+	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "")
+	if err := body.Validate(); err == nil {
+		t.Fatal("expected missing device_id error")
+	}
+	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "agx-large 22222222")
+	if err := body.Validate(); err == nil {
+		t.Fatal("expected public_label rejected")
 	}
 }
 

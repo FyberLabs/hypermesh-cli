@@ -37,12 +37,15 @@ func TestCreateLeaseHTTP(t *testing.T) {
 		if body.Kind != KindP2LoadedModel || body.CatalogID != DefaultCatalogID || body.Purpose != PurposeRenter {
 			t.Fatalf("body %+v", body)
 		}
+		if body.DeviceID != "22222222-2222-2222-2222-222222222222" {
+			t.Fatalf("device_id %+v", body)
+		}
 		_ = json.NewEncoder(w).Encode(Lease{ID: "lease_1", Status: "offered", CheckoutURL: "https://checkout.test/s"})
 	}))
 	defer srv.Close()
 
 	c := NewClient(srv.URL, DefaultChatBase, "org_key", "ten")
-	lease, _, err := c.CreateLease(NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1))
+	lease, _, err := c.CreateLease(NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,6 +109,55 @@ func TestChatRejectsForbiddenKey(t *testing.T) {
 	})
 	if err == nil || !strings.Contains(err.Error(), "hm_rtr_") {
 		t.Fatalf("got %v", err)
+	}
+}
+
+func TestCreateLeaseMissingDeviceIDDoesNotPOST(t *testing.T) {
+	t.Parallel()
+	called := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+	c := NewClient(srv.URL, DefaultChatBase, "org_key", "ten")
+	_, _, err := c.CreateLease(NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, ""))
+	if err == nil {
+		t.Fatal("expected device_id error")
+	}
+	if !strings.Contains(err.Error(), "device_id") {
+		t.Fatalf("got %v", err)
+	}
+	if called {
+		t.Fatal("posted without device_id")
+	}
+}
+
+func TestGetRenterHosts(t *testing.T) {
+	t.Parallel()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != PathRenterHosts {
+			t.Fatalf("unexpected %s %s", r.Method, r.URL.Path)
+		}
+		if r.Header.Get(HeaderAPIKey) != "org_key" || r.Header.Get(HeaderTenantID) != "ten" {
+			t.Fatal("missing renter headers")
+		}
+		if r.URL.RawQuery != "catalog_id="+DefaultCatalogID {
+			t.Fatalf("query %q", r.URL.RawQuery)
+		}
+		if _, ok := r.URL.Query()["view"]; ok {
+			t.Fatal("invented query key view")
+		}
+		_, _ = w.Write([]byte(`[{"device_id":"22222222-2222-2222-2222-222222222222","public_label":"agx-large 22222222","class_id":"agx-large","certified":true,"online":true,"sell_state":"selling"}]`))
+	}))
+	defer srv.Close()
+	c := NewClient(srv.URL, DefaultChatBase, "org_key", "ten")
+	raw, err := c.GetRenterHosts(DefaultCatalogID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), "22222222-2222-2222-2222-222222222222") {
+		t.Fatalf("%s", raw)
 	}
 }
 
