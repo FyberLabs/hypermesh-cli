@@ -16,6 +16,7 @@ func newCheckoutCmd(r *run) *cobra.Command {
 	var (
 		catalogID     string
 		renterUserID  string
+		deviceID      string
 		successURL    string
 		cancelURL     string
 		reservedHours int
@@ -27,7 +28,7 @@ func newCheckoutCmd(r *run) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkout",
 		Short: "Create a Phase 1 Full Model lease and Stripe test Checkout",
-		Long:  "POST /api/v1/hypermesh/leases with kind=p2_loaded_model, catalog_id=llama-3.1-8b-q4, purpose=renter. Prints lease id and checkout_url immediately.",
+		Long:  "POST /api/v1/hypermesh/leases with kind=p2_loaded_model, catalog_id=llama-3.1-8b-q4, purpose=renter, and device_id (UUID from hosts). Missing device_id fails before POST. Prints lease id and checkout_url immediately. Stripe Checkout only.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if renterUserID == "" {
 				renterUserID = r.cfg.RenterUserID
@@ -38,7 +39,7 @@ func newCheckoutCmd(r *run) *cobra.Command {
 			if cancelURL == "" {
 				cancelURL = r.cfg.CancelURL
 			}
-			body := api.NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL, reservedHours)
+			body := api.NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL, reservedHours, deviceID)
 			lease, raw, err := r.client.CreateLease(body)
 			if err != nil {
 				return err
@@ -68,6 +69,7 @@ func newCheckoutCmd(r *run) *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&catalogID, "catalog-id", api.DefaultCatalogID, "Full Model catalog id")
+	cmd.Flags().StringVar(&deviceID, "device-id", "", "host device_id UUID from hosts (not public_label)")
 	cmd.Flags().StringVar(&renterUserID, "renter-user-id", "", "renter user uuid")
 	cmd.Flags().StringVar(&successURL, "success-url", "", "Stripe Checkout success URL")
 	cmd.Flags().StringVar(&cancelURL, "cancel-url", "", "Stripe Checkout cancel URL")

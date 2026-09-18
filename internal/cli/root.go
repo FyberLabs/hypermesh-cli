@@ -50,6 +50,7 @@ func New(name string) *cobra.Command {
 	root.AddCommand(newAuthCmd(r))
 	root.AddCommand(newCatalogCmd(r))
 	root.AddCommand(newClassesCmd(r))
+	root.AddCommand(newHostsCmd(r))
 	root.AddCommand(newCheckoutCmd(r))
 	root.AddCommand(newLeaseCmd(r))
 	root.AddCommand(newChatCmd(r))

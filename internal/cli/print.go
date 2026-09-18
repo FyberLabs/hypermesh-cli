@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -29,7 +30,7 @@ func unwrapItems(raw json.RawMessage) []map[string]any {
 	if json.Unmarshal(raw, &obj) != nil {
 		return nil
 	}
-	for _, key := range []string{"items", "catalog", "classes", "leases", "data", "results"} {
+	for _, key := range []string{"items", "catalog", "classes", "hosts", "leases", "data", "results"} {
 		if v, ok := obj[key]; ok {
 			b, err := json.Marshal(v)
 			if err != nil {
@@ -83,6 +84,51 @@ func printIDList(raw json.RawMessage) error {
 			continue
 		}
 		fmt.Println(id)
+	}
+	return nil
+}
+
+func formatCell(v any) string {
+	switch t := v.(type) {
+	case nil:
+		return ""
+	case bool:
+		if t {
+			return "true"
+		}
+		return "false"
+	case string:
+		return t
+	default:
+		return fmt.Sprint(t)
+	}
+}
+
+func printHostList(w io.Writer, raw json.RawMessage) error {
+	items := unwrapItems(raw)
+	if items == nil {
+		var v any
+		if err := json.Unmarshal(raw, &v); err != nil {
+			return err
+		}
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(v)
+	}
+	fmt.Fprintln(w, "device_id\tpublic_label\tclass_id\tcertified\tonline\tsell_state")
+	for _, item := range items {
+		deviceID := firstString(item, "device_id")
+		if deviceID == "" {
+			continue
+		}
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+			deviceID,
+			firstString(item, "public_label"),
+			firstString(item, "class_id"),
+			formatCell(item["certified"]),
+			formatCell(item["online"]),
+			firstString(item, "sell_state"),
+		)
 	}
 	return nil
 }

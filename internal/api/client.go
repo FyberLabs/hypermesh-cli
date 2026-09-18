@@ -130,6 +130,14 @@ func (c *Client) GetClasses() (json.RawMessage, error) {
 	return c.doJSON(http.MethodGet, u, nil, false)
 }
 
+func (c *Client) GetRenterHosts(catalogID string) (json.RawMessage, error) {
+	u, err := RenterHostsURL(c.APIBase, catalogID)
+	if err != nil {
+		return nil, err
+	}
+	return c.doJSON(http.MethodGet, u, nil, true)
+}
+
 func (c *Client) CreateLease(body LeaseCreate) (Lease, json.RawMessage, error) {
 	if err := body.Validate(); err != nil {
 		return Lease{}, nil, err

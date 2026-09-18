@@ -3,8 +3,12 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 )
+
+// deviceIDRe is a UUID (plane id). public_label is not accepted.
+var deviceIDRe = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 const (
 	KindP2LoadedModel = "p2_loaded_model"
@@ -20,6 +24,7 @@ type LeaseCreate struct {
 	CancelURL     string `json:"cancel_url"`
 	ReservedHours int    `json:"reserved_hours"`
 	Purpose       string `json:"purpose"`
+	DeviceID      string `json:"device_id"`
 }
 
 // Lease is the subset the CLI depends on. Extra fields pass through as JSON.
@@ -29,7 +34,7 @@ type Lease struct {
 	CheckoutURL string `json:"checkout_url"`
 }
 
-func NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL string, reservedHours int) LeaseCreate {
+func NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL string, reservedHours int, deviceID string) LeaseCreate {
 	if catalogID == "" {
 		catalogID = DefaultCatalogID
 	}
@@ -44,7 +49,12 @@ func NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL string,
 		CancelURL:     cancelURL,
 		ReservedHours: reservedHours,
 		Purpose:       PurposeRenter,
+		DeviceID:      strings.TrimSpace(deviceID),
 	}
+}
+
+func IsDeviceID(s string) bool {
+	return deviceIDRe.MatchString(strings.TrimSpace(s))
 }
 
 func (c LeaseCreate) Validate() error {
@@ -68,6 +78,14 @@ func (c LeaseCreate) Validate() error {
 	}
 	if c.ReservedHours <= 0 {
 		return fmt.Errorf("reserved_hours must be >= 1")
+	}
+	if c.Purpose == PurposeRenter {
+		if strings.TrimSpace(c.DeviceID) == "" {
+			return fmt.Errorf("device_id is required for renter checkout (UUID from hosts; not public_label)")
+		}
+		if !IsDeviceID(c.DeviceID) {
+			return fmt.Errorf("device_id must be a UUID (plane id); public_label is display only")
+		}
 	}
 	return nil
 }
