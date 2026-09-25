@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -9,6 +10,10 @@ import (
 	"github.com/FyberLabs/hypermesh-cli/internal/api"
 	"github.com/FyberLabs/hypermesh-cli/internal/config"
 )
+
+// ExitFailure is the only non-zero status this process returns.
+// Scripts can rely on it. An HTTP status is never the process status.
+const ExitFailure = 1
 
 type run struct {
 	json     bool
@@ -21,11 +26,11 @@ type run struct {
 func New(name string) *cobra.Command {
 	r := &run{}
 	root := &cobra.Command{
-		Use:           name,
-		Short:         "Thin Hypermesh CLI — Phase 1 Full Model checkout + router chat",
-		Long:          "Hypermesh (Hyperme.sh) renter CLI. Phase 1 is Full Model only: catalog llama-3.1-8b-q4, Stripe test Checkout, then chat on the Fyber router.",
-		SilenceUsage:  true,
-		SilenceErrors: true,
+		Use:               name,
+		Short:             "Thin Hypermesh CLI — Phase 1 Full Model checkout + router chat",
+		Long:              "Hypermesh (Hyperme.sh) renter CLI. Phase 1 is Full Model only: catalog llama-3.1-8b-q4, Stripe test Checkout, then chat on the Fyber router.",
+		SilenceUsage:      true,
+		SilenceErrors:     true,
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
@@ -60,9 +65,21 @@ func New(name string) *cobra.Command {
 }
 
 func Execute(name string) {
+	os.Exit(Run(name, os.Args[1:]))
+}
+
+// Run executes the CLI and returns the process status.
+// Diagnostics go to stderr. Script chat writes model text only to stdout.
+func Run(name string, args []string) int {
+	log.SetOutput(os.Stderr)
+	log.SetFlags(0)
 	cmd := New(name)
+	cmd.SetArgs(args)
+	cmd.SetOut(os.Stdout)
+	cmd.SetErr(os.Stderr)
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return ExitFailure
 	}
+	return 0
 }
