@@ -8,8 +8,7 @@ param(
     [Parameter(Position = 0, ValueFromRemainingArguments = $true)]
     [string[]] $Prompt,
 
-    [Alias('LeaseId')]
-    [string] $LeaseID,
+    [string] $LeaseId,
 
     [string] $Model,
 
@@ -60,9 +59,9 @@ if ($ChatBase) {
 }
 $argList.Add('prompt')
 $argList.Add('--script')
-if ($LeaseID) {
+if ($LeaseId) {
     $argList.Add('--lease-id')
-    $argList.Add($LeaseID)
+    $argList.Add($LeaseId)
 }
 if ($Model) {
     $argList.Add('--model')
