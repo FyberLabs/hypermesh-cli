@@ -81,6 +81,18 @@ Paid lease ticket plus the same renter key.
 
 Never log prompt bodies.
 
+## Shell
+
+`prompt --script`, `chat --script`, and `completions create --script` are the non-interactive mode for bash.
+
+- stdout is only the assistant text (one trailing newline if the model text has none)
+- diagnostics go to stderr and are not part of the model text
+- exit status is `0` on success and `1` on any failure (the HTTP status is not the process status)
+- `--json` stays the raw completion and cannot be combined with `--script`
+- empty assistant text is a failure; the CLI does not dump the completion JSON onto stdout
+
+`scripts/hypermesh-prompt.ps1` execs this same binary (`prompt --script`). It does not open a second HTTP client. Chat remains `POST {HYPERMESH_CHAT_BASE}/v1/chat/completions`.
+
 ## Principles
 
 Thin client over the REST lock in [FyberLabs/hypermesh-docs](https://github.com/FyberLabs/hypermesh-docs):

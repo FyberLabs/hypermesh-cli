@@ -88,14 +88,22 @@ hypermesh checkout \
 hypermesh lease list
 hypermesh lease show "$LEASE_ID"
 
-hypermesh prompt --lease-id "$LEASE_ID" "hello"
-hypermesh chat --lease-id "$LEASE_ID" --message "hello"
-hypermesh completions create --lease-id "$LEASE_ID" --model llama-3.1-8b-q4 --message "hello"
+hypermesh prompt --script --lease-id "$LEASE_ID" "hello"
+hypermesh chat --script --lease-id "$LEASE_ID" --message "hello"
+hypermesh completions create --script --lease-id "$LEASE_ID" --model llama-3.1-8b-q4 --message "hello"
+
+# Bash: stdout is only the model text. Exit status is 1 on failure.
+text=$(hypermesh prompt --script --lease-id "$LEASE_ID" "hello")
+
+# PowerShell calls the same binary. It does not open its own HTTP client.
+./scripts/hypermesh-prompt.ps1 -LeaseId "$LEASE_ID" "hello"
 
 hypermesh lease complete "$LEASE_ID"
 ```
 
-`--json` works on every command. Failures exit non-zero. Prompt bodies are not logged.
+`--json` works on every command except together with `--script`. Failures exit `1` (not the HTTP status). Prompt bodies are not logged.
+
+`--script` is the non-interactive mode. Stdout is only the assistant text. Errors and logs stay on stderr, so a shell capture does not mix them into the model text. An empty assistant message is a failure. `scripts/hypermesh-prompt.ps1` execs `hypermesh prompt --script`; it is not a second HTTP client.
 
 Chat is `POST $HYPERMESH_CHAT_BASE/v1/chat/completions` with `lease_id` in the body and `X-Hypermesh-Lease-Id` / `X-Lease-Id`. The CLI never calls `POST /api/v1/hypermesh/renter/chat/completions` (always-409 stub).
 
@@ -120,4 +128,4 @@ Lease status: `offered` → `paid` → `starting` → `active` → `ended` | `fa
 | `hosts` | `GET /api/v1/hypermesh/renter/hosts` |
 | `checkout` | `POST /api/v1/hypermesh/leases` |
 | `lease list\|show\|complete` | `GET/POST /api/v1/hypermesh/leases[/{id}[/complete]]` |
-| `chat` / `prompt` / `completions create` | `POST {chat base}/v1/chat/completions` |
+| `chat` / `prompt` / `completions create` | `POST {chat base}/v1/chat/completions` (`--script`: stdout is model text, exit 1 on failure) |
