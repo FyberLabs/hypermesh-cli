@@ -129,22 +129,28 @@ Config for the [hypermesh-visor](https://github.com/FyberLabs/hypermesh-visor) c
 ```bash
 hypermesh mcp catalog ls
 hypermesh mcp import cursor
+hypermesh mcp import project
 hypermesh mcp import docker
 hypermesh mcp profile ls
 hypermesh mcp profile create frontend
 hypermesh mcp profile use frontend
 hypermesh mcp profile add filesystem
+hypermesh mcp profile add chrome          # also writes catalog matchers into bindings
+hypermesh mcp profile gateway on          # attach only Docker MCP gateway for this profile
 hypermesh mcp bindings add filesystem --wm-class Code
 hypermesh mcp bindings ls
 hypermesh mcp doctor
 hypermesh mcp list
 ```
 
+Project import merges `.hypermesh/mcp.json` or `.cursor/mcp.json` from a path (or cwd parents). Catalog entries such as `chrome` and `code` carry desktop matchers that become `mcp-bindings.json` rows when you `profile add` them. `profile gateway on` asks the visor to attach only `docker-gateway`.
+
 | File | Shape |
 |---|---|
 | `mcp.json` | `{ "mcpServers": { … } }` |
-| `mcp-profiles.json` | `{ "active", "profiles": { … } }` |
+| `mcp-profiles.json` | `{ "active", "profiles": { …, "gateway"?: bool } }` |
 | `mcp-bindings.json` | `{ "bindings": [ { "server", "wm_class"?, … } ] }` |
+| project `.hypermesh/mcp.json` | same servers shape; merged at attach time / import |
 
 ## Environment
 
