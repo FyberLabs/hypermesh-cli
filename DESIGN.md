@@ -93,6 +93,17 @@ Never log prompt bodies.
 
 `scripts/hypermesh-prompt.ps1` execs this same binary (`prompt --script`). It does not open a second HTTP client. Chat remains `POST {HYPERMESH_CHAT_BASE}/v1/chat/completions`.
 
+## Local MCP (v0)
+
+Config under `HYPERMESH_CONFIG_DIR` (default `~/.config/hypermesh`):
+
+| File | Shape |
+|---|---|
+| `mcp.json` | Cursor-compatible `{ "mcpServers": { … } }` |
+| `mcp-profiles.json` | `{ "active", "profiles": { name: { servers, config } } }` |
+
+Commands: `mcp catalog ls`, `mcp list`, `mcp profile ls|create|use|add`, `mcp profile config set`, `mcp import cursor|docker`, `mcp doctor`. Doctor checks PATH (stdio) or TCP reachability (http/sse). It does not call tools. The visor owns MCP client lifecycle for a session.
+
 ## Principles
 
 Thin client over the REST lock in [FyberLabs/hypermesh-docs](https://github.com/FyberLabs/hypermesh-docs):

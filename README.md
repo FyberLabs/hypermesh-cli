@@ -49,6 +49,25 @@ Files:
 
 - `~/.config/hypermesh/config.toml`
 - `~/.config/hypermesh/credentials` (mode `0600`)
+- `~/.config/hypermesh/mcp.json` — Cursor-shaped MCP servers
+- `~/.config/hypermesh/mcp-profiles.json` — Docker-like named profiles
+
+## Local MCP
+
+Configure and probe local MCP servers for the visor companion. The visor attaches the active profile when a session opens.
+
+```bash
+hypermesh mcp catalog ls
+hypermesh mcp import cursor                 # or: hypermesh mcp import cursor /path/to/mcp.json
+hypermesh mcp import docker                 # adds docker mcp gateway run
+hypermesh mcp profile ls
+hypermesh mcp profile create frontend
+hypermesh mcp profile use frontend
+hypermesh mcp profile add filesystem
+hypermesh mcp profile config set filesystem.cwd=/tmp
+hypermesh mcp doctor
+hypermesh mcp list
+```
 
 Defaults (override with env or `--api-base` / `--chat-base`):
 
