@@ -1,4 +1,4 @@
-.PHONY: build test install clean
+.PHONY: build test vet install clean
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
@@ -7,6 +7,9 @@ build:
 	mkdir -p bin
 	go build -o bin/hypermesh ./cmd/hypermesh
 	go build -o bin/hm ./cmd/hm
+
+vet:
+	go vet ./...
 
 test:
 	go test ./...

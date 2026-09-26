@@ -74,6 +74,29 @@ func TestMCPCatalogAndImportDoctor(t *testing.T) {
 	if !strings.Contains(got.Stdout, "docker-gateway") {
 		t.Fatalf("list stdout=%q", got.Stdout)
 	}
+
+	got = runHypermeshConfig(t, dir, "mcp", "bindings", "add", "memory", "--wm-class", "FixtureApp")
+	if got.Code != 0 {
+		t.Fatalf("bindings add: %s", got.Stderr)
+	}
+	got = runHypermeshConfig(t, dir, "mcp", "bindings", "ls")
+	if got.Code != 0 {
+		t.Fatalf("bindings ls: %s", got.Stderr)
+	}
+	if !strings.Contains(got.Stdout, "memory") || !strings.Contains(got.Stdout, "FixtureApp") {
+		t.Fatalf("bindings ls stdout=%q", got.Stdout)
+	}
+	got = runHypermeshConfig(t, dir, "mcp", "bindings", "ls", "--json")
+	if got.Code != 0 {
+		t.Fatalf("bindings ls --json: %s", got.Stderr)
+	}
+	var bindings mcp.BindingsFile
+	if err := json.Unmarshal([]byte(got.Stdout), &bindings); err != nil {
+		t.Fatal(err)
+	}
+	if len(bindings.Bindings) != 1 || bindings.Bindings[0].Server != "memory" {
+		t.Fatalf("bindings=%+v", bindings)
+	}
 }
 
 func runHypermeshConfig(t *testing.T, configDir string, args ...string) scriptResult {
