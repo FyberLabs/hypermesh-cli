@@ -16,9 +16,12 @@ Go 1.22+ on the `PATH`.
 git clone https://github.com/FyberLabs/hypermesh-cli.git
 cd hypermesh-cli
 make build          # bin/hypermesh and bin/hm
+make vet
 make test
 make install        # PREFIX=/usr/local (override as needed)
 ```
+
+CI (`.github/workflows/test.yml`) runs `go vet`, `make test`, and `make build` on every push and pull request.
 
 Or:
 
