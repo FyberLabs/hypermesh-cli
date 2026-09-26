@@ -7,7 +7,7 @@ import (
 func newCatalogCmd(r *run) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "catalog",
-		Short: "List the public Full Model catalog (GET /api/v1/hypermesh/catalog)",
+		Short: "List the public model catalog (GET /api/v1/hypermesh/catalog)",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			raw, err := r.client.GetCatalog()

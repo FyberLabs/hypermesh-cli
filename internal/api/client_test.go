@@ -45,7 +45,7 @@ func TestCreateLeaseHTTP(t *testing.T) {
 	defer srv.Close()
 
 	c := NewClient(srv.URL, DefaultChatBase, "org_key", "ten")
-	lease, _, err := c.CreateLease(NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222"))
+	lease, _, err := c.CreateLease(NewLeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestCreateLeaseMissingDeviceIDDoesNotPOST(t *testing.T) {
 	}))
 	defer srv.Close()
 	c := NewClient(srv.URL, DefaultChatBase, "org_key", "ten")
-	_, _, err := c.CreateLease(NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, ""))
+	_, _, err := c.CreateLease(NewLeaseCreate("u", DefaultCatalogID, "s", "c", 1, ""))
 	if err == nil {
 		t.Fatal("expected device_id error")
 	}

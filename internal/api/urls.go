@@ -12,7 +12,8 @@ const (
 	DefaultChatBase  = "https://chat.test.hyperme.sh"
 	DefaultVisorBase = "http://127.0.0.1:9847"
 
-	// Phase 1 Full Model catalog id. Not a certified soak claim.
+	// DefaultCatalogID seeds --catalog-id / --model when the flag is omitted.
+	// It is not a catalog inventory; list ids with `hypermesh catalog`.
 	DefaultCatalogID = "llama-3.1-8b-q4"
 
 	PathCatalog     = "/api/v1/hypermesh/catalog"
@@ -22,8 +23,7 @@ const (
 
 	PathChatCompletions = "/v1/chat/completions"
 
-	// PathRenterChatStub is the always-409 control-plane stub.
-	// The CLI must never call it. Chat goes to the Fyber router.
+	// PathRenterChatStub is unused by this client (chat uses DefaultChatBase).
 	PathRenterChatStub = "/api/v1/hypermesh/renter/chat/completions"
 )
 
