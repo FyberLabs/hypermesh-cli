@@ -16,6 +16,8 @@ Or: `go install github.com/FyberLabs/hypermesh-cli/cmd/hypermesh@latest` (and th
 
 ## Auth
 
+Use a renter org API key and tenant id (same key for API and chat).
+
 ```bash
 hypermesh auth login \
   --api-key "$HYPERMESH_API_KEY" \

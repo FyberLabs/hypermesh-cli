@@ -86,7 +86,7 @@ func newPromptCmd(r *run) *cobra.Command {
 func newCompletionsCmd(r *run) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "completions",
-		Short: "OpenAI-shaped chat completions against the Fyber router",
+		Short: "OpenAI-shaped chat completions against the Hypermesh router",
 	}
 	var leaseID, model, message, system string
 	var script bool

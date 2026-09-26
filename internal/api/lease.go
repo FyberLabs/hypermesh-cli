@@ -61,10 +61,10 @@ func IsDeviceID(s string) bool {
 
 func (c LeaseCreate) Validate() error {
 	if c.Kind != KindP2LoadedModel {
-		return fmt.Errorf("phase 1 checkout kind must be %s", KindP2LoadedModel)
+		return fmt.Errorf("checkout kind must be %s", KindP2LoadedModel)
 	}
 	if c.Purpose != PurposeRenter {
-		return fmt.Errorf("phase 1 checkout purpose must be %s", PurposeRenter)
+		return fmt.Errorf("checkout purpose must be %s", PurposeRenter)
 	}
 	if strings.TrimSpace(c.RenterUserID) == "" {
 		return fmt.Errorf("renter_user_id is required")
