@@ -97,6 +97,40 @@ func TestMCPCatalogAndImportDoctor(t *testing.T) {
 	if len(bindings.Bindings) != 1 || bindings.Bindings[0].Server != "memory" {
 		t.Fatalf("bindings=%+v", bindings)
 	}
+
+	projectDir := filepath.Join(dir, "proj", ".hypermesh")
+	if err := os.MkdirAll(projectDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	projectPath := filepath.Join(projectDir, "mcp.json")
+	if err := mcp.WriteCursorSample(projectPath, map[string]mcp.Server{
+		"project-tool": {Command: "true"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got = runHypermeshConfig(t, dir, "mcp", "import", "project", filepath.Join(dir, "proj"))
+	if got.Code != 0 {
+		t.Fatalf("import project: %s", got.Stderr)
+	}
+	if !strings.Contains(got.Stdout, "project-tool") {
+		t.Fatalf("import project stdout=%q", got.Stdout)
+	}
+
+	got = runHypermeshConfig(t, dir, "mcp", "profile", "gateway", "on")
+	if got.Code != 0 {
+		t.Fatalf("gateway on: %s", got.Stderr)
+	}
+	got = runHypermeshConfig(t, dir, "mcp", "profile", "add", "chrome")
+	if got.Code != 0 {
+		t.Fatalf("profile add chrome: %s", got.Stderr)
+	}
+	got = runHypermeshConfig(t, dir, "mcp", "bindings", "ls")
+	if got.Code != 0 {
+		t.Fatalf("bindings after chrome: %s", got.Stderr)
+	}
+	if !strings.Contains(got.Stdout, "chrome") {
+		t.Fatalf("expected chrome bindings, got %q", got.Stdout)
+	}
 }
 
 func runHypermeshConfig(t *testing.T, configDir string, args ...string) scriptResult {
