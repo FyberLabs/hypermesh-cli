@@ -25,7 +25,7 @@ func newChatCmd(r *run) *cobra.Command {
 	var script bool
 	cmd := &cobra.Command{
 		Use:   "chat",
-		Short: "POST router /v1/chat/completions (never the control-plane 409 stub)",
+		Short: "Chat on the Hypermesh router",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			text, err := messageOrStdin(message, args)
 			if err != nil {
