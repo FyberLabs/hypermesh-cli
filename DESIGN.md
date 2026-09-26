@@ -101,8 +101,9 @@ Config under `HYPERMESH_CONFIG_DIR` (default `~/.config/hypermesh`):
 |---|---|
 | `mcp.json` | Cursor-compatible `{ "mcpServers": { … } }` |
 | `mcp-profiles.json` | `{ "active", "profiles": { name: { servers, config } } }` |
+| `mcp-bindings.json` | `{ "bindings": [ { "server", "wm_class"? , "app_id"?, "executable"? } ] }` |
 
-Commands: `mcp catalog ls`, `mcp list`, `mcp profile ls|create|use|add`, `mcp profile config set`, `mcp import cursor|docker`, `mcp doctor`. Doctor checks PATH (stdio) or TCP reachability (http/sse). It does not call tools. The visor owns MCP client lifecycle for a session.
+Commands: `mcp catalog ls`, `mcp list`, `mcp profile ls|create|use|add`, `mcp profile config set`, `mcp import cursor|docker`, `mcp doctor`, `mcp bindings ls|add`. Doctor checks PATH (stdio) or TCP reachability (http/sse). It does not call tools. The visor owns MCP client lifecycle, prefer-MCP detection, and tool-invoke audit for a session.
 
 ## Principles
 

@@ -51,10 +51,11 @@ Files:
 - `~/.config/hypermesh/credentials` (mode `0600`)
 - `~/.config/hypermesh/mcp.json` — Cursor-shaped MCP servers
 - `~/.config/hypermesh/mcp-profiles.json` — Docker-like named profiles
+- `~/.config/hypermesh/mcp-bindings.json` — focused-app → server bindings (companion prefer-MCP)
 
 ## Local MCP
 
-Configure and probe local MCP servers for the visor companion. The visor attaches the active profile when a session opens.
+Configure and probe local MCP servers for the visor companion. The visor attaches the active profile when a session opens. When a binding matches the focused app and that server is healthy, the companion shows `mcp:<id>` instead of mouse/type.
 
 ```bash
 hypermesh mcp catalog ls
@@ -65,6 +66,8 @@ hypermesh mcp profile create frontend
 hypermesh mcp profile use frontend
 hypermesh mcp profile add filesystem
 hypermesh mcp profile config set filesystem.cwd=/tmp
+hypermesh mcp bindings add fixture --wm-class FixtureApp
+hypermesh mcp bindings ls
 hypermesh mcp doctor
 hypermesh mcp list
 ```
