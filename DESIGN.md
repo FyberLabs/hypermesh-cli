@@ -1,13 +1,11 @@
-# Hypermesh CLI design lock (Phase 1)
+# Hypermesh CLI — design notes
 
-This file restates the product lock. Do not invent a second one.
+Contributor lock for this repo. Public how-to lives in [README.md](README.md). Do not invent a second API.
 
 ## Names
 
 - Binary: `hypermesh` (alias `hm`).
 - Product: **Hypermesh** / **Hyperme.sh**. Never bare Hyperme.
-- Phase 1 product: **Full Model** only. Catalog id `llama-3.1-8b-q4`.
-- Not in v0: Your Model, BYOM, box rent, load, host enroll, MHS, WireGuard keys, tok/s claims, host IPs.
 
 ## Auth
 
@@ -46,13 +44,15 @@ Config: `~/.config/hypermesh/config.toml`. Credentials file `~/.config/hypermesh
 
 Do **not** call `POST /api/v1/hypermesh/renter/chat/completions` (always-409 stub).
 
-## LeaseCreate (Phase 1)
+## LeaseCreate
+
+Default checkout body (flags override catalog id and hours):
 
 ```json
 {
   "kind": "p2_loaded_model",
   "renter_user_id": "<uuid>",
-  "catalog_id": "llama-3.1-8b-q4",
+  "catalog_id": "<catalog id>",
   "success_url": "…",
   "cancel_url": "…",
   "reserved_hours": 1,
@@ -61,7 +61,9 @@ Do **not** call `POST /api/v1/hypermesh/renter/chat/completions` (always-409 stu
 }
 ```
 
-`device_id` is the plane UUID from `hosts`, not `public_label`. Required when `purpose` is `renter`. The client rejects a missing or non-UUID `device_id` before POST (the API would 422). The CLI does not auto-pick a host.
+`DefaultCatalogID` in code is the current API default (`llama-3.1-8b-q4`). It is a default flag value, not a product ceiling — callers pass `--catalog-id` for other catalog entries.
+
+`device_id` is the plane UUID from `hosts`, not `public_label`. Required when `purpose` is `renter`. The client rejects a missing or non-UUID `device_id` before POST. The CLI does not auto-pick a host.
 
 `hosts` rows: `device_id`, `public_label` (display only), `class_id`, `certified`, `online`, `sell_state`. No serial, secrets, or host console fields.
 
@@ -93,7 +95,7 @@ Never log prompt bodies.
 
 `scripts/hypermesh-prompt.ps1` execs this same binary (`prompt --script`). It does not open a second HTTP client. Chat remains `POST {HYPERMESH_CHAT_BASE}/v1/chat/completions`.
 
-## Local MCP (v0)
+## Local MCP
 
 Config under `HYPERMESH_CONFIG_DIR` (default `~/.config/hypermesh`):
 
@@ -101,16 +103,16 @@ Config under `HYPERMESH_CONFIG_DIR` (default `~/.config/hypermesh`):
 |---|---|
 | `mcp.json` | Cursor-compatible `{ "mcpServers": { … } }` |
 | `mcp-profiles.json` | `{ "active", "profiles": { name: { servers, config } } }` |
-| `mcp-bindings.json` | `{ "bindings": [ { "server", "wm_class"? , "app_id"?, "executable"? } ] }` |
+| `mcp-bindings.json` | `{ "bindings": [ { "server", "wm_class"?, "app_id"?, "executable"? } ] }` |
 
-Commands: `mcp catalog ls`, `mcp list`, `mcp profile ls|create|use|add`, `mcp profile config set`, `mcp import cursor|docker`, `mcp doctor`, `mcp bindings ls|add`. Doctor checks PATH (stdio) or TCP reachability (http/sse). It does not call tools. The visor owns MCP client lifecycle, prefer-MCP detection, and tool-invoke audit for a session.
+Commands: `mcp catalog ls`, `mcp list`, `mcp profile ls|create|use|add`, `mcp profile config set`, `mcp import cursor|docker`, `mcp doctor`, `mcp bindings ls|add`. Doctor checks PATH (stdio) or TCP reachability (http/sse). It does not call tools. The visor owns MCP client lifecycle, prefer-MCP detection, tool-invoke audit, and vault `source: "mcp"` (locator `server/tool` against `mcp.json` — role B, separate from session tool attach).
 
 ## Principles
 
 Thin client over the REST lock in [FyberLabs/hypermesh-docs](https://github.com/FyberLabs/hypermesh-docs):
 
 - [customer-interfaces.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/customer-interfaces.md) — one API, CLI is a key, not a second login
-- [full-model.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/full-model.md) — product 2
+- [full-model.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/full-model.md) — product shape for loaded models
 - [payments.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/payments.md) — Stripe Checkout, Fyber Labs merchant of record
 - [router.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/router.md) — customers scale on HTTPS; host WireGuard is not a renter path
 - [public-sites.md](https://github.com/FyberLabs/hypermesh-docs/blob/main/public-sites.md) — do not dump internal locks onto customer copy

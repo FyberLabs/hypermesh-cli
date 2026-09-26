@@ -12,7 +12,7 @@ const (
 	DefaultChatBase  = "https://chat.test.hyperme.sh"
 	DefaultVisorBase = "http://127.0.0.1:9847"
 
-	// Phase 1 Full Model catalog id. Not a certified soak claim.
+	// DefaultCatalogID is the current API default for --catalog-id / --model.
 	DefaultCatalogID = "llama-3.1-8b-q4"
 
 	PathCatalog     = "/api/v1/hypermesh/catalog"

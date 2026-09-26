@@ -49,8 +49,8 @@ func newPromptCmd(r *run) *cobra.Command {
 	var script bool
 	cmd := &cobra.Command{
 		Use:   "prompt [text...]",
-		Short: "Non-interactive Full Model prompt; stdout is only the model text",
-		Long:  "POST {chat base}/v1/chat/completions. With --session, POST one prompt on the visor stream (X-Api-Key, and model only when --model is set). With --script, stdout is only the assistant text and the process exits 1 on failure. Diagnostics stay on stderr. Never calls the control-plane 409 stub.",
+		Short: "Send a prompt; with --script, stdout is only the assistant text",
+		Long:  "POST {chat base}/v1/chat/completions. With --session, POST one prompt on the visor stream (X-Api-Key, and model only when --model is set). With --script, stdout is only the assistant text and the process exits 1 on failure. Diagnostics stay on stderr.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			text, err := messageOrStdin(message, args)
 			if err != nil {
@@ -114,7 +114,7 @@ func newCompletionsCmd(r *run) *cobra.Command {
 
 func addChatFlags(cmd *cobra.Command, leaseID, model, message, system *string, script *bool) {
 	cmd.Flags().StringVar(leaseID, "lease-id", "", "paid lease ticket (also HYPERMESH_LEASE_ID)")
-	cmd.Flags().StringVar(model, "model", api.DefaultCatalogID, "OpenAI-shaped model name (Phase 1 catalog id)")
+	cmd.Flags().StringVar(model, "model", api.DefaultCatalogID, "OpenAI-shaped model / catalog id")
 	cmd.Flags().StringVar(message, "message", "", "user message (omit to read remaining args or stdin)")
 	cmd.Flags().StringVar(system, "system", "", "optional system message")
 	cmd.Flags().BoolVar(script, "script", false, "non-interactive: stdout is only the model text; exit 1 on failure")

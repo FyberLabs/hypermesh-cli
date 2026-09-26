@@ -7,7 +7,7 @@ import (
 
 func TestLeaseCreateJSON(t *testing.T) {
 	t.Parallel()
-	body := NewPhase1LeaseCreate(
+	body := NewLeaseCreate(
 		"11111111-1111-1111-1111-111111111111",
 		"llama-3.1-8b-q4",
 		"https://example.test/ok",
@@ -45,7 +45,7 @@ func TestLeaseCreateJSON(t *testing.T) {
 
 func TestLeaseCreateDefaults(t *testing.T) {
 	t.Parallel()
-	body := NewPhase1LeaseCreate("u", "", "s", "c", 0, "22222222-2222-2222-2222-222222222222")
+	body := NewLeaseCreate("u", "", "s", "c", 0, "22222222-2222-2222-2222-222222222222")
 	if body.CatalogID != DefaultCatalogID {
 		t.Fatalf("catalog default: %q", body.CatalogID)
 	}
@@ -62,20 +62,20 @@ func TestLeaseCreateDefaults(t *testing.T) {
 
 func TestLeaseCreateValidate(t *testing.T) {
 	t.Parallel()
-	body := NewPhase1LeaseCreate("", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
+	body := NewLeaseCreate("", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected renter_user_id error")
 	}
-	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
+	body = NewLeaseCreate("u", DefaultCatalogID, "s", "c", 1, "22222222-2222-2222-2222-222222222222")
 	body.Kind = "byom"
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected kind lock")
 	}
-	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "")
+	body = NewLeaseCreate("u", DefaultCatalogID, "s", "c", 1, "")
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected missing device_id error")
 	}
-	body = NewPhase1LeaseCreate("u", DefaultCatalogID, "s", "c", 1, "agx-large 22222222")
+	body = NewLeaseCreate("u", DefaultCatalogID, "s", "c", 1, "agx-large 22222222")
 	if err := body.Validate(); err == nil {
 		t.Fatal("expected public_label rejected")
 	}

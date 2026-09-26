@@ -27,8 +27,8 @@ func newCheckoutCmd(r *run) *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "checkout",
-		Short: "Create a Phase 1 Full Model lease and Stripe test Checkout",
-		Long:  "POST /api/v1/hypermesh/leases with kind=p2_loaded_model, catalog_id=llama-3.1-8b-q4, purpose=renter, and device_id (UUID from hosts). Missing device_id fails before POST. Prints lease id and checkout_url immediately. Stripe Checkout only.",
+		Short: "Create a loaded-model lease and open Stripe Checkout",
+		Long:  "POST /api/v1/hypermesh/leases with kind=p2_loaded_model, purpose=renter, catalog_id (default from --catalog-id), and device_id (UUID from hosts). Missing device_id fails before POST. Prints lease id and checkout_url immediately.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if renterUserID == "" {
 				renterUserID = r.cfg.RenterUserID
@@ -39,7 +39,7 @@ func newCheckoutCmd(r *run) *cobra.Command {
 			if cancelURL == "" {
 				cancelURL = r.cfg.CancelURL
 			}
-			body := api.NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL, reservedHours, deviceID)
+			body := api.NewLeaseCreate(renterUserID, catalogID, successURL, cancelURL, reservedHours, deviceID)
 			lease, raw, err := r.client.CreateLease(body)
 			if err != nil {
 				return err
@@ -68,12 +68,12 @@ func newCheckoutCmd(r *run) *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&catalogID, "catalog-id", api.DefaultCatalogID, "Full Model catalog id")
+	cmd.Flags().StringVar(&catalogID, "catalog-id", api.DefaultCatalogID, "catalog model id")
 	cmd.Flags().StringVar(&deviceID, "device-id", "", "host device_id UUID from hosts (not public_label)")
 	cmd.Flags().StringVar(&renterUserID, "renter-user-id", "", "renter user uuid")
 	cmd.Flags().StringVar(&successURL, "success-url", "", "Stripe Checkout success URL")
 	cmd.Flags().StringVar(&cancelURL, "cancel-url", "", "Stripe Checkout cancel URL")
-	cmd.Flags().IntVar(&reservedHours, "reserved-hours", 1, "reserved hours (Phase 1 default 1)")
+	cmd.Flags().IntVar(&reservedHours, "reserved-hours", 1, "reserved hours")
 	cmd.Flags().BoolVar(&wait, "wait", false, "poll GET /leases/{id} until active|failed")
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "do not open checkout_url")
 	cmd.Flags().DurationVar(&pollEvery, "poll-interval", 2*time.Second, "lease poll interval with --wait")

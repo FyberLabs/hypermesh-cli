@@ -15,7 +15,7 @@ const (
 	PurposeRenter     = "renter"
 )
 
-// LeaseCreate is the locked Phase 1 Full Model checkout body.
+// LeaseCreate is the checkout body for a loaded-model renter lease.
 type LeaseCreate struct {
 	Kind          string `json:"kind"`
 	RenterUserID  string `json:"renter_user_id"`
@@ -34,7 +34,9 @@ type Lease struct {
 	CheckoutURL string `json:"checkout_url"`
 }
 
-func NewPhase1LeaseCreate(renterUserID, catalogID, successURL, cancelURL string, reservedHours int, deviceID string) LeaseCreate {
+// NewLeaseCreate builds a loaded-model renter checkout body.
+// Empty catalogID uses DefaultCatalogID.
+func NewLeaseCreate(renterUserID, catalogID, successURL, cancelURL string, reservedHours int, deviceID string) LeaseCreate {
 	if catalogID == "" {
 		catalogID = DefaultCatalogID
 	}

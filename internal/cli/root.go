@@ -27,8 +27,8 @@ func New(name string) *cobra.Command {
 	r := &run{}
 	root := &cobra.Command{
 		Use:               name,
-		Short:             "Thin Hypermesh CLI — Phase 1 Full Model checkout + router chat",
-		Long:              "Hypermesh (Hyperme.sh) renter CLI. Phase 1 is Full Model only: catalog llama-3.1-8b-q4, Stripe test Checkout, then chat on the Fyber router.",
+		Short:             "Thin Hypermesh CLI — catalog, checkout, chat, and local MCP",
+		Long:              "Hypermesh (Hyperme.sh) renter CLI: browse the catalog, check out a lease, chat on the router, and manage local MCP for the desktop visor.",
 		SilenceUsage:      true,
 		SilenceErrors:     true,
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
