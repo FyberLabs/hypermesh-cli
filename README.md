@@ -1,6 +1,6 @@
 # hypermesh-cli
 
-Thin **Hypermesh** CLI for [Hyperme.sh](https://hyperme.sh): browse the catalog, check out a lease, chat on the router, and manage local MCP config for the desktop visor.
+Thin **Hypermesh** CLI for [Hyperme.sh](https://hyperme.sh): browse the catalog, check out a lease, chat on the router, and manage local MCP config for the [desktop visor](https://github.com/FyberLabs/hypermesh-visor).
 
 Binaries: `hypermesh` and `hm`.
 
@@ -27,6 +27,13 @@ hypermesh auth login \
 hypermesh auth whoami
 hypermesh auth logout
 ```
+
+Authenticated requests send:
+
+| Header | Value |
+|---|---|
+| `X-Api-Key` | renter org key |
+| `X-Tenant-ID` | tenant id |
 
 Config directory: `~/.config/hypermesh` (or `HYPERMESH_CONFIG_DIR`).
 
@@ -72,9 +79,52 @@ Pick `CATALOG_ID` from `hypermesh catalog` and `DEVICE_ID` from `hypermesh hosts
 
 With `--script`, stdout is the assistant text and failures exit `1`. Use `--json` when you want the raw response (not with `--script`).
 
+## API map
+
+Defaults: `HYPERMESH_API_BASE=https://api.test.hyperme.sh`, `HYPERMESH_CHAT_BASE=https://chat.test.hyperme.sh`.
+
+| Command | Method | Path |
+|---|---|---|
+| `catalog` / `catalog show` | `GET` | `/api/v1/hypermesh/catalog` |
+| `classes` | `GET` | `/api/v1/hypermesh/classes` |
+| `hosts` | `GET` | `/api/v1/hypermesh/renter/hosts` |
+| `checkout` | `POST` | `/api/v1/hypermesh/leases` |
+| `lease list` | `GET` | `/api/v1/hypermesh/leases` |
+| `lease show` | `GET` | `/api/v1/hypermesh/leases/{id}` |
+| `lease complete` | `POST` | `/api/v1/hypermesh/leases/{id}/complete` |
+| `chat` / `prompt` / `completions create` | `POST` | `{chat base}/v1/chat/completions` |
+
+`catalog` and `classes` are public. The rest need the renter key.
+
+### Checkout body
+
+```json
+{
+  "kind": "p2_loaded_model",
+  "renter_user_id": "<uuid>",
+  "catalog_id": "<from catalog>",
+  "success_url": "…",
+  "cancel_url": "…",
+  "reserved_hours": 1,
+  "purpose": "renter",
+  "device_id": "<from hosts>"
+}
+```
+
+`device_id` is the UUID plane id from `hosts` (not `public_label`). Lease status moves `offered` → `paid` → `starting` → `active`, then `ended` / `failed` / `refunded`.
+
+### Chat
+
+`POST {HYPERMESH_CHAT_BASE}/v1/chat/completions` with OpenAI-shaped `model` + `messages`, plus:
+
+- `lease_id` in the JSON body
+- `X-Hypermesh-Lease-Id` and `X-Lease-Id` headers
+
+Prompt bodies are not logged.
+
 ## Local MCP
 
-For the [hypermesh-visor](https://github.com/FyberLabs/hypermesh-visor) companion:
+Config for the [hypermesh-visor](https://github.com/FyberLabs/hypermesh-visor) companion (visor attaches the active profile on session open):
 
 ```bash
 hypermesh mcp catalog ls
@@ -90,6 +140,12 @@ hypermesh mcp doctor
 hypermesh mcp list
 ```
 
+| File | Shape |
+|---|---|
+| `mcp.json` | `{ "mcpServers": { … } }` |
+| `mcp-profiles.json` | `{ "active", "profiles": { … } }` |
+| `mcp-bindings.json` | `{ "bindings": [ { "server", "wm_class"?, … } ] }` |
+
 ## Environment
 
 | Env | Default |
@@ -101,13 +157,13 @@ Also: `HYPERMESH_API_KEY`, `HYPERMESH_TENANT_ID`, `HYPERMESH_RENTER_USER_ID`, `H
 
 ## Commands
 
-| Command | What it hits |
+| Command | Role |
 |---|---|
 | `auth …` | local config |
-| `catalog` / `classes` | public catalog API |
+| `catalog` / `classes` | public catalog |
 | `hosts` | renter hosts |
-| `checkout` / `lease …` | leases |
-| `chat` / `prompt` / `completions create` | chat completions |
+| `checkout` / `lease …` | leases + Stripe Checkout |
+| `chat` / `prompt` / `completions create` | router chat |
 | `mcp …` | local MCP config |
 
-More product context: [FyberLabs/hypermesh-docs](https://github.com/FyberLabs/hypermesh-docs). Contributor notes: [DESIGN.md](DESIGN.md).
+Contributor notes (same repo): [DESIGN.md](DESIGN.md).
